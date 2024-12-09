@@ -1,36 +1,47 @@
-# This is a basic workflow to help you get started with Actions
+name: Nextdoor Automation
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  schedule:
+    - cron: '0 9,17 * * *' # Runs at 9 AM and 5 PM daily (UTC time)
+  workflow_dispatch: # Allows manual runs from the Actions tab
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  run-puppeteer:
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Install Puppeteer
+        run: npm install puppeteer
+
+      - name: Run Puppeteer Script
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo 'const puppeteer = require("puppeteer"); \
+          (async () => { \
+            const browser = await puppeteer.launch({ \
+              headless: true, \
+              args: ["--no-sandbox", "--disable-setuid-sandbox"] \
+            }); \
+            const page = await browser.newPage(); \
+            await page.goto("https://nextdoor.com/login", { waitUntil: "networkidle2" }); \
+            await page.click("button.google-signin"); \
+            await page.waitForNavigation({ waitUntil: "networkidle2" }); \
+            await page.type("input[type=email]", "danieloniel1332@gmail.com"); \
+            await page.click("button[type=button]"); \
+            await page.waitForTimeout(2000); \
+            await page.type("input[type=password]", "symbA1332"); \
+            await page.click("button[type=button]"); \
+            await page.waitForNavigation({ waitUntil: "networkidle2" }); \
+            await page.goto("https://nextdoor.com/create_post", { waitUntil: "networkidle2" }); \
+            await page.type("textarea", "Automated post content from GitHub Actions!"); \
+            await page.click("button.submit"); \
+            await browser.close(); \
+            console.log("Post submitted successfully!"); \
+          })();' > script.js && node script.js
