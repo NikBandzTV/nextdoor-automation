@@ -1,25 +1,22 @@
-- name: Run Puppeteer Script
-  run: |
-    echo 'const puppeteer = require("puppeteer"); \
-    (async () => { \
-      const browser = await puppeteer.launch({ \
-        headless: true, \
-        args: ["--no-sandbox", "--disable-setuid-sandbox"] \
-      }); \
-      const page = await browser.newPage(); \
-      await page.goto("https://nextdoor.com/login", { waitUntil: "networkidle2" }); \
-      await page.click("button.google-signin"); \
-      await page.waitForNavigation({ waitUntil: "networkidle2" }); \
-      await page.type("input[type=email]", "danieloniel1332@gmail.com"); \
-      await page.click("button[type=button]"); \
-      await page.waitForTimeout(2000); \
-      await page.type("input[type=password]", "symbA1332"); \
-      await page.click("button[type=button]"); \
-      await page.waitForNavigation({ waitUntil: "networkidle2" }); \
-      await page.goto("https://nextdoor.com/create_post", { waitUntil: "networkidle2" }); \
-      await page.type("textarea", "Automated post content from GitHub Actions!"); \
-      await page.click("button.submit"); \
-      await browser.close(); \
-      console.log("Post submitted successfully!"); \
-    })();' > script.js && node script.js
+name: Nextdoor Automation
 
+on:
+  schedule:
+    - cron: '0 9,17 * * *' # Runs at 9 AM and 5 PM daily (UTC time)
+  workflow_dispatch: # Allows manual runs from the Actions tab
+
+jobs:
+  run-puppeteer:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Puppeteer
+        run: npm install puppeteer
